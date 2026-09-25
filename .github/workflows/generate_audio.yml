@@ -18,8 +18,8 @@ jobs:
       - name: 3. Cài đặt thư viện AI Audio và Requests
         run: |
           pip install --upgrade pip
-          pip install edge-tts requests
-
+          pip install edge-tts requests beautifulsoup4
+          
       - name: 4. Chạy crawler tạo Audio và đồng bộ Supabase
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
