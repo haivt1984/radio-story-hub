@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Mộng Hoa Các &bull; Không Gian Đọc & Nghe Radio Truyện Online</title>
+
+  <!-- PWA & Mobile Web App -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mộng Hoa Các">
+  <meta name="theme-color" content="#1c1917">
+
+  <!-- Tailwind CSS & Supabase JS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            serif: ['Lora', 'Georgia', 'serif'],
+            display: ['Playfair Display', 'serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          },
+          colors: {
+            book: {
+              cream: '#faf8f5',
+              sepia: '#f5ead2',
+              dark: '#161514',
+              gold: '#d97706',
+              crimson: '#e11d48'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .sound-bar {
+      display: inline-block;
+      width: 3px;
+      height: 12px;
+      background-color: #f43f5e;
+      border-radius: 2px;
+      animation: soundwave 1s infinite alternate;
+    }
+    .sound-bar:nth-child(2) { animation-delay: 0.2s; height: 18px; }
+    .sound-bar:nth-child(3) { animation-delay: 0.4s; height: 10px; }
+    .sound-bar:nth-child(4) { animation-delay: 0.1s; height: 16px; }
+    @keyframes soundwave {
+      0% { transform: scaleY(0.3); }
+      100% { transform: scaleY(1.3); }
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 14px;
+      width: 14px;
+      border-radius: 50%;
+      background: #e11d48;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body id="app-body" class="bg-book-cream text-stone-800 min-h-screen flex flex-col justify-between font-sans antialiased">
+
+  <!-- Core HTML5 Audio Player Engine -->
+  <audio id="main-audio-player" preload="metadata"></audio>
+
+  <!-- Top Ambient Banner -->
+  <div class="bg-stone-900 text-stone-300 text-[11px] py-1.5 px-4 sm:px-8 flex justify-between items-center font-mono">
+    <div class="flex items-center gap-2.5">
+      <span class="inline-flex items-center gap-1.5 text-rose-400 font-semibold">
+        <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
+        MỘNG HOA CÁC RADIO
+      </span>
+      <span class="hidden sm:inline text-stone-600">|</span>
+      <span class="hidden sm:inline text-stone-400">Không Gian Audio Radio &bull; Diễn Đọc Trực Tuyến &bull; Ngôn Tình &bull; Kiếm Hiệp &bull; Trinh Thám &bull; Cổ Tích</span>
+    </div>
+    <div id="sleep-timer-badge" class="text-amber-400 text-[10px] font-mono">Hẹn giờ ngủ: Tắt</div>
+  </div>
+
+  <!-- Header -->
+  <header id="main-header" class="bg-white/95 backdrop-blur border-b border-stone-200/80 sticky top-0 z-40 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3 cursor-pointer w-full md:w-auto justify-between md:justify-start" onclick="showCatalogView()">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-stone-900 via-rose-900 to-amber-800 flex items-center justify-center text-amber-200 font-display font-bold text-2xl shadow-md shadow-rose-950/20">
+            M
+          </div>
+          <div>
+            <span class="font-display font-bold text-2xl tracking-tight text-stone-900">
+              Mộng Hoa Các<span class="text-rose-600 font-sans text-[10px] ml-1.5 font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200/60">Audio Radio</span>
+            </span>
+            <p class="text-[11px] text-stone-400 font-medium">Đài phát thanh truyện diễn đọc & audio sách nói trực tuyến</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Search Bar -->
+      <div class="w-full md:w-80 relative">
+        <input 
+          type="text" 
+          id="search-input"
+          placeholder="Tìm tác phẩm audio, tác giả..." 
+          class="w-full bg-stone-100 border border-stone-200/90 rounded-full pl-9 pr-4 py-2 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-rose-600 focus:bg-white transition shadow-inner"
+        />
+        <svg class="w-4 h-4 text-stone-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Category Nav Tabs -->
+    <div class="border-t border-stone-100 bg-white/70">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-2 overflow-x-auto text-xs font-semibold no-scrollbar py-2">
+        <button onclick="filterCategory('ALL')" class="cat-pill active px-4 py-1.5 rounded-full bg-stone-900 text-amber-100 shadow-xs transition">
+          Tất cả đài phát
+        </button>
+        <button onclick="filterCategory('Ngôn Tình')" class="cat-pill px-4 py-1.5 rounded-full bg-stone-100 hover:bg-rose-50 hover:text-rose-700 text-stone-600 transition flex items-center gap-1.5">
+          <span>🌸</span> Radio Ngôn Tình
+        </button>
+        <button onclick="filterCategory('Kiếm Hiệp')" class="cat-pill px-4 py-1.5 rounded-full bg-stone-100 hover:bg-amber-50 hover:text-amber-800 text-stone-600 transition flex items-center gap-1.5">
+          <span>⚔️</span> Kiếm Hiệp Giang Hồ
+        </button>
+        <button onclick="filterCategory('Trinh Thám')" class="cat-pill px-4 py-1.5 rounded-full bg-stone-100 hover:bg-indigo-50 hover:text-indigo-700 text-stone-600 transition flex items-center gap-1.5">
+          <span>🕵️</span> Kỳ Án Trinh Thám
+        </button>
+        <button onclick="filterCategory('Cổ Tích')" class="cat-pill px-4 py-1.5 rounded-full bg-stone-100 hover:bg-emerald-50 hover:text-emerald-800 text-stone-600 transition flex items-center gap-1.5">
+          <span>🧚</span> Kể Chuyện Cổ Tích
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= VIEW 1: TRANG DANH SÁCH BỘ TRUYỆN ================= -->
+  <main id="catalog-view" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+    
+    <!-- Hero Banner Radio -->
+    <div class="rounded-3xl bg-gradient-to-r from-stone-950 via-stone-900 to-rose-950 text-white p-6 sm:p-10 mb-8 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div>
+        <span class="text-xs font-mono font-bold tracking-wider text-rose-400 uppercase block mb-1">ÂM THANH DIỄN ĐỌC CAO CẤP</span>
+        <h1 class="text-2xl sm:text-3xl font-display font-bold tracking-tight">Lắng đọng cùng từng trang sách</h1>
+        <p class="text-stone-300 text-xs sm:text-sm mt-1 max-w-xl">Giọng đọc diễn cảm tự nhiên hòa quyện cùng âm sắc du dương, lắng nghe mọi lúc trên điện thoại và máy tính.</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="quickPlayFirstStory()" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md transition flex items-center gap-2">
+          <span>▶</span> Bật Đài Radio
+        </button>
+      </div>
+    </div>
+
+    <!-- Tiêu đề danh mục -->
+    <div class="flex items-center justify-between mb-6">
+      <h2 id="catalog-heading" class="text-sm font-bold uppercase tracking-widest text-stone-500 font-mono flex items-center gap-2">
+        <span class="w-2 h-2 bg-rose-600 rounded-full"></span>
+        DANH SÁCH TÁC PHẨM AUDIO
+      </h2>
+      <span id="results-count" class="text-xs text-stone-400 font-mono"></span>
+    </div>
+
+    <!-- Grid Danh Sách Truyện -->
+    <div id="stories-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+      <div class="col-span-full py-20 flex flex-col items-center justify-center text-stone-400 gap-3">
+        <div class="w-8 h-8 border-2 border-rose-600 border-t-transparent rounded-full animate-spin"></div>
+        <span class="text-xs font-mono">Đang đồng bộ dữ liệu đài phát thanh...</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- ================= VIEW 2: CHI TIẾT BỘ TRUYỆN & MỤC LỤC AUDIO ================= -->
+  <main id="story-view" class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full hidden">
+    <button onclick="showCatalogView()" class="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-stone-200 text-stone-600 hover:text-stone-900 text-xs font-medium transition shadow-2xs mb-6">
+      <span class="group-hover:-translate-x-1 transition duration-200">&larr;</span> Về tủ sách
+    </button>
+
+    <div class="bg-white rounded-3xl border border-stone-200/90 p-6 sm:p-8 shadow-xs mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 items-start">
+        
+        <div class="md:col-span-4 lg:col-span-3">
+          <div class="w-full aspect-[3/4] rounded-2xl overflow-hidden shadow-lg border border-stone-200 bg-stone-100">
+            <img id="detail-cover" src="" alt="Cover" class="w-full h-full object-cover">
+          </div>
+        </div>
+
+        <div class="md:col-span-8 lg:col-span-9 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span id="detail-cat-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase"></span>
+              <span class="text-xs text-rose-600 font-medium font-mono">● Bản Audio Chuẩn</span>
+            </div>
+
+            <h1 id="detail-title" class="text-2xl sm:text-3xl font-display font-bold text-stone-900 leading-snug mb-2"></h1>
+            <p id="detail-author" class="text-xs text-stone-500 font-serif italic mb-4"></p>
+
+            <div class="text-xs text-stone-600 leading-relaxed space-y-2 border-t border-stone-100 pt-3 mb-6">
+              <span class="font-bold text-stone-800 uppercase block font-sans text-[10px] tracking-wider text-stone-400">Nội dung tóm lược:</span>
+              <p id="detail-description" class="text-stone-700 font-serif text-sm leading-relaxed"></p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3">
+            <button onclick="playChapterAudio(0)" class="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md transition flex items-center gap-2">
+              <span>▶</span> Phát Audio từ tập 1
+            </button>
+            <button onclick="openReaderOnly(0)" class="px-5 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold text-xs transition">
+              Đọc bản thảo văn bản
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danh sách tập Audio -->
+    <div class="bg-white rounded-3xl border border-stone-200/90 p-6 sm:p-8 shadow-xs">
+      <div class="flex items-center justify-between border-b border-stone-100 pb-4 mb-6">
+        <h3 class="font-serif font-bold text-stone-900 text-base flex items-center gap-2">
+          <span>🎧</span> DANH SÁCH BẢN PHÁT THANH (<span id="total-chapters-count">0</span>)
+        </h3>
+        <span class="text-xs text-stone-400 font-mono">Bấm để lắng nghe ngay</span>
+      </div>
+      <div id="chapters-list-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+    </div>
+  </main>
+
+  <!-- ================= VIEW 3: TRÌNH PHÁT RADIO AUDIO CHUYÊN SÂU ================= -->
+  <main id="reader-view" class="max-w-3xl mx-auto px-4 sm:px-6 py-6 flex-grow w-full hidden">
+    
+    <div class="bg-white rounded-2xl border border-stone-200/90 p-3 mb-6 flex items-center justify-between gap-3 shadow-xs sticky top-[10px] z-30">
+      <button onclick="backToStoryDetail()" class="text-xs font-semibold text-stone-500 hover:text-stone-800 transition flex items-center gap-1">
+        &larr; Mục lục tập
+      </button>
+
+      <!-- Hẹn giờ tắt đài (Sleep timer) -->
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-stone-400 font-mono">⏱ Hẹn giờ ngủ:</span>
+        <select id="sleep-timer-select" onchange="setSleepTimer(this.value)" class="bg-stone-50 border border-stone-200 rounded-lg px-2 py-1 text-xs text-stone-700 font-mono focus:outline-none">
+          <option value="0">Tắt</option>
+          <option value="15">15 phút</option>
+          <option value="30">30 phút</option>
+          <option value="45">45 phút</option>
+          <option value="60">60 phút</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Khung đĩa nhạc & lời văn bản -->
+    <article class="bg-white rounded-3xl border border-stone-200/90 p-6 sm:p-12 shadow-xs mb-36">
+      
+      <!-- Radio Disc Visualizer -->
+      <div class="flex flex-col items-center justify-center text-center pb-8 border-b border-stone-100">
+        <div class="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 border-stone-900/10 p-1 mb-4 shadow-xl relative overflow-hidden bg-stone-900">
+          <img id="player-disk-cover" src="" alt="Album Disc" class="w-full h-full rounded-full object-cover">
+          <div class="absolute inset-0 m-auto w-8 h-8 rounded-full bg-white border-2 border-stone-900"></div>
+        </div>
+        <span id="player-story-title" class="text-xs font-mono font-bold tracking-widest text-rose-600 uppercase mb-1"></span>
+        <h1 id="player-chapter-title" class="text-xl sm:text-2xl font-serif font-bold text-stone-900 leading-snug"></h1>
+        <p id="player-author-name" class="text-xs text-stone-400 font-serif italic mt-1"></p>
+      </div>
+
+      <!-- Bản thảo văn bản diễn đọc -->
+      <div class="mt-8">
+        <h4 class="text-xs font-mono text-stone-400 uppercase tracking-widest text-center mb-6">BẢN THẢO DIỄN ĐỌC</h4>
+        <div id="reader-content-body" class="font-serif text-lg leading-[2.1] text-stone-700 space-y-6 select-text text-justify"></div>
+      </div>
+    </article>
+
+    <!-- FLOATING AUDIO PLAYER (Thanh điều khiển cố định chân trang) -->
+    <div class="fixed bottom-0 left-0 right-0 bg-stone-950/95 backdrop-blur-md text-white border-t border-stone-800 py-3.5 px-4 z-50 shadow-2xl">
+      <div class="max-w-2xl mx-auto flex flex-col gap-2">
+        
+        <!-- Thanh Tua Thời Gian (Seekbar) -->
+        <div class="flex items-center gap-3 text-[11px] font-mono">
+          <span id="audio-current-time" class="text-stone-400 w-10 text-right">00:00</span>
+          <input 
+            type="range" 
+            id="audio-seekbar" 
+            value="0" 
+            min="0" 
+            max="100" 
+            onchange="seekAudio(this.value)" 
+            class="flex-grow h-1.5 bg-stone-800 rounded-lg appearance-none cursor-pointer accent-rose-600"
+          >
+          <span id="audio-duration" class="text-stone-400 w-10">00:00</span>
+        </div>
+
+        <!-- Cụm Nút Điều Khiển -->
+        <div class="flex items-center justify-between pt-1">
+          
+          <!-- Thông tin đang phát -->
+          <div class="flex items-center gap-2.5 truncate max-w-[160px] sm:max-w-xs">
+            <span id="radio-wave" class="hidden items-center gap-0.5 shrink-0">
+              <span class="sound-bar"></span>
+              <span class="sound-bar"></span>
+              <span class="sound-bar"></span>
+              <span class="sound-bar"></span>
+            </span>
+            <div class="truncate">
+              <div id="bar-title" class="text-xs font-serif font-bold text-white truncate">Chưa phát</div>
+              <div id="bar-author" class="text-[10px] text-stone-400 font-mono truncate">Mộng Hoa Các</div>
+            </div>
+          </div>
+
+          <!-- Các nút Play/Pause và tua 15s -->
+          <div class="flex items-center gap-3 sm:gap-4">
+            <button onclick="skipTime(-15)" title="Lùi 15 giây" class="text-stone-400 hover:text-white transition font-mono text-xs p-1">
+              ↺ 15s
+            </button>
+
+            <button id="btn-prev-chap" onclick="navigateChapter(-1)" title="Tập trước" class="text-stone-300 hover:text-white transition text-sm disabled:opacity-20">
+              ⏮
+            </button>
+
+            <button id="btn-master-play" onclick="toggleAudioPlay()" class="w-11 h-11 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center font-bold text-base shadow-lg shadow-rose-900/50 transition">
+              ▶
+            </button>
+
+            <button id="btn-next-chap" onclick="navigateChapter(1)" title="Tập sau" class="text-stone-300 hover:text-white transition text-sm disabled:opacity-20">
+              ⏭
+            </button>
+
+            <button onclick="skipTime(15)" title="Tới 15 giây" class="text-stone-400 hover:text-white transition font-mono text-xs p-1">
+              15s ↻
+            </button>
+          </div>
+
+          <!-- Bộ chỉnh tốc độ -->
+          <div class="flex items-center gap-1">
+            <select id="audio-speed-select" onchange="changeAudioPlaybackRate(this.value)" class="bg-stone-800 border border-stone-700 text-amber-300 rounded px-1.5 py-1 text-[11px] font-mono focus:outline-none">
+              <option value="0.8">0.8x</option>
+              <option value="1.0" selected>1.0x</option>
+              <option value="1.2">1.2x</option>
+              <option value="1.5">1.5x</option>
+            </select>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer id="main-footer" class="border-t border-stone-200 bg-white py-6 text-xs text-stone-400 font-sans mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-rose-600"></span>
+        <span class="font-bold text-stone-700">Mộng Hoa Các Radio Studio</span>
+      </div>
+      <div>Đài Phát Thanh & Audio Sách Nói &bull; HTML5 Streaming Engine</div>
+    </div>
+  </footer>
+
+  <script>
+    // ================= KẾT NỐI SUPABASE =================
+    const SUPABASE_URL = "https://lleeibzegmnycuingzgx.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxsZWVpYnplZ21ueWN1aW5nemd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxMjc5OTUsImV4cCI6MjEwNTcwMzk5NX0.KrO8Y8qoKh0NIPYDL6wki7zGb-Lxi1xwWgQrX9xSXxE";
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let allStories = [];
+    let currentStory = null;
+    let currentChapterIndex = 0;
+    let currentCategory = 'ALL';
+    let sleepTimer = null;
+
+    const audioPlayer = document.getElementById('main-audio-player');
+    const seekbar = document.getElementById('audio-seekbar');
+    const currentTimeLabel = document.getElementById('audio-current-time');
+    const durationLabel = document.getElementById('audio-duration');
+    const masterPlayBtn = document.getElementById('btn-master-play');
+    const radioWave = document.getElementById('radio-wave');
+
+    async function initApp() {
+      setupAudioEngine();
+      await fetchStoriesFromDatabase();
+      renderStories();
+    }
+
+    async function fetchStoriesFromDatabase() {
+      try {
+        const { data, error } = await client.from('audio_stories').select('*, audio_chapters(*)');
+        if (error || !data || data.length === 0) {
+          allStories = [];
+        } else {
+          allStories = data.map(s => ({
+            ...s,
+            chapters: s.audio_chapters ? s.audio_chapters.sort((a,b) => a.chapter_number - b.chapter_number) : []
+          }));
+        }
+      } catch (err) {
+        allStories = [];
+      }
+    }
+
+    function setupAudioEngine() {
+      audioPlayer.addEventListener('timeupdate', () => {
+        if (!isNaN(audioPlayer.duration)) {
+          const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+          seekbar.value = progress;
+          currentTimeLabel.innerText = formatTime(audioPlayer.currentTime);
+          durationLabel.innerText = formatTime(audioPlayer.duration);
+        }
+      });
+
+      audioPlayer.addEventListener('ended', () => {
+        if (currentStory && currentChapterIndex < currentStory.chapters.length - 1) {
+          navigateChapter(1);
+        } else {
+          updateAudioUI(false);
+        }
+      });
+
+      audioPlayer.addEventListener('play', () => updateAudioUI(true));
+      audioPlayer.addEventListener('pause', () => updateAudioUI(false));
+    }
+
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return "00:00";
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function renderStories() {
+      const grid = document.getElementById('stories-grid');
+      const query = document.getElementById('search-input')?.value.toLowerCase().trim() || '';
+
+      const filtered = allStories.filter(s => {
+        const matchCat = (currentCategory === 'ALL') || (s.category && s.category.toLowerCase().includes(currentCategory.toLowerCase()));
+        const matchSearch = (!query) || (s.title && s.title.toLowerCase().includes(query)) || (s.author && s.author.toLowerCase().includes(query));
+        return matchCat && matchSearch;
+      });
+
+      document.getElementById('results-count').innerText = `${filtered.length} tác phẩm`;
+      grid.innerHTML = '';
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-full py-16 text-center text-stone-400 font-mono text-xs">Không tìm thấy tác phẩm Audio nào. Hãy chạy script crawler_audio.py để nạp truyện.</div>`;
+        return;
+      }
+
+      filtered.forEach(story => {
+        const card = document.createElement('div');
+        card.className = "cursor-pointer group flex flex-col justify-between";
+        card.onclick = () => openStoryDetail(story.id);
+
+        card.innerHTML = `
+          <div>
+            <div class="w-full aspect-[3/4] rounded-2xl overflow-hidden relative shadow-sm border border-stone-200 bg-stone-100 mb-2.5">
+              <img src="${story.cover_image}" alt="${story.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+              <span class="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold border backdrop-blur-md bg-white/90 text-rose-700 border-rose-200">
+                ${story.category}
+              </span>
+              <button onclick="event.stopPropagation(); quickPlayStory(${story.id})" title="Nghe Radio ngay" class="absolute bottom-2.5 right-2.5 w-9 h-9 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-md text-xs transition">
+                ▶
+              </button>
+            </div>
+            
+            <h3 class="font-serif font-bold text-stone-900 text-sm leading-snug group-hover:text-rose-600 transition line-clamp-2 mb-1">
+              ${story.title}
+            </h3>
+            <p class="text-[11px] text-stone-400 font-medium truncate mb-1">${story.author}</p>
+          </div>
+          <div class="text-[10px] font-mono text-stone-400 flex items-center justify-between pt-1 border-t border-stone-100">
+            <span>${story.chapters ? story.chapters.length : 1} tập Audio</span>
+            <span class="text-rose-600 font-bold group-hover:underline">Nghe đài &rarr;</span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function quickPlayFirstStory() {
+      if (allStories.length > 0) {
+        quickPlayStory(allStories[0].id);
+      }
+    }
+
+    function quickPlayStory(id) {
+      currentStory = allStories.find(s => s.id === id);
+      playChapterAudio(0);
+    }
+
+    function openStoryDetail(id) {
+      currentStory = allStories.find(s => s.id === id);
+      if (!currentStory) return;
+
+      document.getElementById('catalog-view').classList.add('hidden');
+      document.getElementById('reader-view').classList.add('hidden');
+      document.getElementById('story-view').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      document.getElementById('detail-cover').src = currentStory.cover_image;
+      document.getElementById('detail-title').innerText = currentStory.title;
+      document.getElementById('detail-author').innerText = currentStory.author;
+      document.getElementById('detail-description').innerText = currentStory.description;
+      document.getElementById('total-chapters-count').innerText = currentStory.chapters.length;
+
+      const catBadge = document.getElementById('detail-cat-badge');
+      catBadge.innerText = currentStory.category;
+      catBadge.className = `px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border bg-rose-50 text-rose-700 border-rose-200`;
+
+      const listContainer = document.getElementById('chapters-list-grid');
+      listContainer.innerHTML = '';
+      currentStory.chapters.forEach((chap, idx) => {
+        const item = document.createElement('div');
+        item.className = "p-3 rounded-2xl border border-stone-100 bg-stone-50/70 hover:bg-rose-50 hover:border-rose-200 cursor-pointer transition text-xs font-serif text-stone-800 flex items-center justify-between";
+        item.onclick = () => playChapterAudio(idx);
+        item.innerHTML = `
+          <div class="flex items-center gap-2 truncate">
+            <span class="w-6 h-6 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-[10px] shrink-0">▶</span>
+            <span class="truncate font-medium">${chap.chapter_title || chap.title}</span>
+          </div>
+          <span class="text-[10px] font-mono text-rose-600 font-bold shrink-0 ml-2">Phát Audio</span>
+        `;
+        listContainer.appendChild(item);
+      });
+    }
+
+    function playChapterAudio(chapIdx) {
+      if (!currentStory || !currentStory.chapters[chapIdx]) return;
+
+      currentChapterIndex = chapIdx;
+      const chapter = currentStory.chapters[chapIdx];
+
+      document.getElementById('catalog-view').classList.add('hidden');
+      document.getElementById('story-view').classList.add('hidden');
+      document.getElementById('reader-view').classList.remove('hidden');
+      document.getElementById('main-header').classList.add('hidden');
+      document.getElementById('main-footer').classList.add('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      document.getElementById('player-disk-cover').src = currentStory.cover_image;
+      document.getElementById('player-story-title').innerText = currentStory.title;
+      document.getElementById('player-chapter-title').innerText = chapter.chapter_title || chapter.title;
+      document.getElementById('player-author-name').innerText = currentStory.author;
+
+      document.getElementById('bar-title').innerText = chapter.chapter_title || chapter.title;
+      document.getElementById('bar-author').innerText = currentStory.title;
+
+      const paragraphs = (chapter.content || "").split('\n').filter(p => p.trim().length > 0);
+      document.getElementById('reader-content-body').innerHTML = paragraphs.map(p => `<p class="leading-relaxed indent-8">${p}</p>`).join('');
+
+      audioPlayer.src = chapter.audio_url;
+      audioPlayer.play().catch(e => console.log("Cần tương tác để phát:", e));
+
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: chapter.chapter_title || chapter.title,
+          artist: currentStory.author,
+          album: currentStory.title,
+          artwork: [{ src: currentStory.cover_image, sizes: '512x512', type: 'image/jpeg' }]
+        });
+      }
+
+      document.getElementById('btn-prev-chap').disabled = (currentChapterIndex === 0);
+      document.getElementById('btn-next-chap').disabled = (currentChapterIndex === currentStory.chapters.length - 1);
+    }
+
+    function openReaderOnly(chapIdx) {
+      playChapterAudio(chapIdx);
+      audioPlayer.pause();
+    }
+
+    function toggleAudioPlay() {
+      if (audioPlayer.paused) {
+        audioPlayer.play();
+      } else {
+        audioPlayer.pause();
+      }
+    }
+
+    function updateAudioUI(isPlaying) {
+      if (isPlaying) {
+        masterPlayBtn.innerText = '⏸';
+        radioWave.classList.remove('hidden');
+        radioWave.classList.add('inline-flex');
+      } else {
+        masterPlayBtn.innerText = '▶';
+        radioWave.classList.add('hidden');
+        radioWave.classList.remove('inline-flex');
+      }
+    }
+
+    function seekAudio(percent) {
+      if (!isNaN(audioPlayer.duration)) {
+        audioPlayer.currentTime = (percent / 100) * audioPlayer.duration;
+      }
+    }
+
+    function skipTime(seconds) {
+      audioPlayer.currentTime = Math.max(0, Math.min(audioPlayer.duration || 0, audioPlayer.currentTime + seconds));
+    }
+
+    function changeAudioPlaybackRate(rate) {
+      audioPlayer.playbackRate = parseFloat(rate);
+    }
+
+    function navigateChapter(dir) {
+      const nextIdx = currentChapterIndex + dir;
+      if (nextIdx >= 0 && nextIdx < currentStory.chapters.length) {
+        playChapterAudio(nextIdx);
+      }
+    }
+
+    function setSleepTimer(minutes) {
+      clearTimeout(sleepTimer);
+      const badge = document.getElementById('sleep-timer-badge');
+      const mins = parseInt(minutes);
+
+      if (mins > 0) {
+        badge.innerText = `⏱ Tắt sau: ${mins} phút`;
+        badge.className = "text-rose-400 text-[10px] font-mono font-bold animate-pulse";
+        sleepTimer = setTimeout(() => {
+          audioPlayer.pause();
+          badge.innerText = "⏱ Hẹn giờ: Đã dừng phát";
+          badge.className = "text-stone-500 text-[10px] font-mono";
+          document.getElementById('sleep-timer-select').value = "0";
+        }, mins * 60 * 1000);
+      } else {
+        badge.innerText = "Hẹn giờ ngủ: Tắt";
+        badge.className = "text-amber-400 text-[10px] font-mono";
+      }
+    }
+
+    function backToStoryDetail() {
+      document.getElementById('reader-view').classList.add('hidden');
+      document.getElementById('story-view').classList.remove('hidden');
+      document.getElementById('main-header').classList.remove('hidden');
+      document.getElementById('main-footer').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showCatalogView() {
+      document.getElementById('story-view').classList.add('hidden');
+      document.getElementById('reader-view').classList.add('hidden');
+      document.getElementById('catalog-view').classList.remove('hidden');
+      document.getElementById('main-header').classList.remove('hidden');
+      document.getElementById('main-footer').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function filterCategory(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-pill').forEach(btn => {
+        btn.className = "cat-pill px-4 py-1.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 transition";
+      });
+      event.target.className = "cat-pill active px-4 py-1.5 rounded-full bg-stone-900 text-amber-100 shadow-xs transition";
+      renderStories();
+    }
+
+    document.getElementById('search-input')?.addEventListener('input', renderStories);
+
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
