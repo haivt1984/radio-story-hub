@@ -93,7 +93,7 @@
         MỘNG HOA CÁC RADIO
       </span>
       <span class="hidden sm:inline text-stone-600">|</span>
-      <span class="hidden sm:inline text-stone-400">Không Gian Audio Radio &bull; Diễn Đọc Trực Tuyến &bull; Ngôn Tình &bull; Kiếm Hiệp &bull; Trinh Thám &bull; Cổ Tích</span>
+      <span class="hidden sm:inline text-stone-400">Không Gian Audio Radio &bull; Diễn Đọc Trực Tuyến &bull; Đa Chương Liền Mạch</span>
     </div>
     <div id="sleep-timer-badge" class="text-amber-400 text-[10px] font-mono">Hẹn giờ ngủ: Tắt</div>
   </div>
@@ -161,7 +161,7 @@
       <div>
         <span class="text-xs font-mono font-bold tracking-wider text-rose-400 uppercase block mb-1">ÂM THANH DIỄN ĐỌC CAO CẤP</span>
         <h1 class="text-2xl sm:text-3xl font-display font-bold tracking-tight">Lắng đọng cùng từng trang sách</h1>
-        <p class="text-stone-300 text-xs sm:text-sm mt-1 max-w-xl">Giọng đọc diễn cảm tự nhiên hòa quyện cùng âm sắc du dương, lắng nghe mọi lúc trên điện thoại và máy tính.</p>
+        <p class="text-stone-300 text-xs sm:text-sm mt-1 max-w-xl">Hệ thống hỗ trợ truyện đa hồi, đa chương. Giọng đọc tự nhiên, liền mạch theo từng phần.</p>
       </div>
       <div class="flex items-center gap-2">
         <button onclick="quickPlayFirstStory()" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md transition flex items-center gap-2">
@@ -183,7 +183,7 @@
     <div id="stories-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
       <div class="col-span-full py-20 flex flex-col items-center justify-center text-stone-400 gap-3">
         <div class="w-8 h-8 border-2 border-rose-600 border-t-transparent rounded-full animate-spin"></div>
-        <span class="text-xs font-mono">Đang đồng bộ dữ liệu đài phát thanh...</span>
+        <span class="text-xs font-mono">Đang nạp dữ liệu đài phát...</span>
       </div>
     </div>
   </main>
@@ -221,7 +221,7 @@
 
           <div class="flex flex-wrap items-center gap-3">
             <button onclick="playChapterAudio(0)" class="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md transition flex items-center gap-2">
-              <span>▶</span> Phát Audio từ tập 1
+              <span>▶</span> Nghe từ tập 1
             </button>
             <button onclick="openReaderOnly(0)" class="px-5 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold text-xs transition">
               Đọc bản thảo văn bản
@@ -235,9 +235,9 @@
     <div class="bg-white rounded-3xl border border-stone-200/90 p-6 sm:p-8 shadow-xs">
       <div class="flex items-center justify-between border-b border-stone-100 pb-4 mb-6">
         <h3 class="font-serif font-bold text-stone-900 text-base flex items-center gap-2">
-          <span>🎧</span> DANH SÁCH BẢN PHÁT THANH (<span id="total-chapters-count">0</span>)
+          <span>🎧</span> MỤC LỤC TẬP / HỒI (<span id="total-chapters-count">0</span>)
         </h3>
-        <span class="text-xs text-stone-400 font-mono">Bấm để lắng nghe ngay</span>
+        <span class="text-xs text-stone-400 font-mono">Bấm vào từng tập để lắng nghe</span>
       </div>
       <div id="chapters-list-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
     </div>
@@ -287,7 +287,7 @@
 
     <!-- FLOATING AUDIO PLAYER (Thanh điều khiển cố định chân trang) -->
     <div class="fixed bottom-0 left-0 right-0 bg-stone-950/95 backdrop-blur-md text-white border-t border-stone-800 py-3.5 px-4 z-50 shadow-2xl">
-      <div class="max-w-2xl mx-auto flex flex-col gap-2">
+      <div class="max-w-3xl mx-auto flex flex-col gap-2">
         
         <!-- Thanh Tua Thời Gian (Seekbar) -->
         <div class="flex items-center gap-3 text-[11px] font-mono">
@@ -304,11 +304,11 @@
           <span id="audio-duration" class="text-stone-400 w-10">00:00</span>
         </div>
 
-        <!-- Cụm Nút Điều Khiển -->
-        <div class="flex items-center justify-between pt-1">
+        <!-- Cụm Nút Điều Khiển & Chọn Nhanh Chương -->
+        <div class="flex items-center justify-between pt-1 gap-2">
           
           <!-- Thông tin đang phát -->
-          <div class="flex items-center gap-2.5 truncate max-w-[160px] sm:max-w-xs">
+          <div class="flex items-center gap-2 truncate max-w-[140px] sm:max-w-xs">
             <span id="radio-wave" class="hidden items-center gap-0.5 shrink-0">
               <span class="sound-bar"></span>
               <span class="sound-bar"></span>
@@ -322,7 +322,7 @@
           </div>
 
           <!-- Các nút Play/Pause và tua 15s -->
-          <div class="flex items-center gap-3 sm:gap-4">
+          <div class="flex items-center gap-2 sm:gap-4 shrink-0">
             <button onclick="skipTime(-15)" title="Lùi 15 giây" class="text-stone-400 hover:text-white transition font-mono text-xs p-1">
               ↺ 15s
             </button>
@@ -344,9 +344,13 @@
             </button>
           </div>
 
-          <!-- Bộ chỉnh tốc độ -->
-          <div class="flex items-center gap-1">
-            <select id="audio-speed-select" onchange="changeAudioPlaybackRate(this.value)" class="bg-stone-800 border border-stone-700 text-amber-300 rounded px-1.5 py-1 text-[11px] font-mono focus:outline-none">
+          <!-- Nhóm Dropdown: Chọn nhanh chương & Tốc độ phát -->
+          <div class="flex items-center gap-1.5 shrink-0">
+            <!-- Nút chọn nhảy nhanh đến bất kỳ chương nào -->
+            <select id="quick-chap-select" onchange="jumpToChapter(this.value)" class="bg-stone-800 border border-stone-700 text-amber-300 rounded px-2 py-1 text-[11px] font-mono focus:outline-none max-w-[110px] sm:max-w-[140px] truncate">
+            </select>
+
+            <select id="audio-speed-select" onchange="changeAudioPlaybackRate(this.value)" class="bg-stone-800 border border-stone-700 text-stone-300 rounded px-1.5 py-1 text-[11px] font-mono focus:outline-none">
               <option value="0.8">0.8x</option>
               <option value="1.0" selected>1.0x</option>
               <option value="1.2">1.2x</option>
@@ -404,7 +408,8 @@
         } else {
           allStories = data.map(s => ({
             ...s,
-            chapters: s.audio_chapters ? s.audio_chapters.sort((a,b) => a.chapter_number - b.chapter_number) : []
+            // Sắp xếp các chương theo thứ tự chuẩn tăng dần
+            chapters: s.audio_chapters ? s.audio_chapters.sort((a,b) => (a.chapter_number || 0) - (b.chapter_number || 0)) : []
           }));
         }
       } catch (err) {
@@ -422,6 +427,7 @@
         }
       });
 
+      // TỰ ĐỘNG CHUYỂN TẬP KẾ TIẾP KHI PHÁT XONG (Auto-Next)
       audioPlayer.addEventListener('ended', () => {
         if (currentStory && currentChapterIndex < currentStory.chapters.length - 1) {
           navigateChapter(1);
@@ -520,6 +526,7 @@
       catBadge.innerText = currentStory.category;
       catBadge.className = `px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border bg-rose-50 text-rose-700 border-rose-200`;
 
+      // Render đầy đủ danh sách các chương/hồi
       const listContainer = document.getElementById('chapters-list-grid');
       listContainer.innerHTML = '';
       currentStory.chapters.forEach((chap, idx) => {
@@ -528,10 +535,10 @@
         item.onclick = () => playChapterAudio(idx);
         item.innerHTML = `
           <div class="flex items-center gap-2 truncate">
-            <span class="w-6 h-6 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-[10px] shrink-0">▶</span>
+            <span class="w-6 h-6 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-[10px] shrink-0">${chap.chapter_number || idx + 1}</span>
             <span class="truncate font-medium">${chap.chapter_title || chap.title}</span>
           </div>
-          <span class="text-[10px] font-mono text-rose-600 font-bold shrink-0 ml-2">Phát Audio</span>
+          <span class="text-[10px] font-mono text-rose-600 font-bold shrink-0 ml-2">Phát Audio ▶</span>
         `;
         listContainer.appendChild(item);
       });
@@ -558,6 +565,12 @@
       document.getElementById('bar-title').innerText = chapter.chapter_title || chapter.title;
       document.getElementById('bar-author').innerText = currentStory.title;
 
+      // Cập nhật Dropdown chọn nhanh chương
+      const selectBox = document.getElementById('quick-chap-select');
+      selectBox.innerHTML = currentStory.chapters.map((c, i) => `
+        <option value="${i}" ${i === currentChapterIndex ? 'selected' : ''}>${c.chapter_title || 'Tập ' + (i+1)}</option>
+      `).join('');
+
       const paragraphs = (chapter.content || "").split('\n').filter(p => p.trim().length > 0);
       document.getElementById('reader-content-body').innerHTML = paragraphs.map(p => `<p class="leading-relaxed indent-8">${p}</p>`).join('');
 
@@ -575,6 +588,10 @@
 
       document.getElementById('btn-prev-chap').disabled = (currentChapterIndex === 0);
       document.getElementById('btn-next-chap').disabled = (currentChapterIndex === currentStory.chapters.length - 1);
+    }
+
+    function jumpToChapter(idx) {
+      playChapterAudio(parseInt(idx));
     }
 
     function openReaderOnly(chapIdx) {
